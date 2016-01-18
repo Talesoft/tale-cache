@@ -1,0 +1,37 @@
+{
+    "name": "talesoft/tale-cache",
+    "type": "library",
+    "keywords": ["cache", "caching", "psr-6"],
+    "description": "A small and basic PSR-6 compatible caching library",
+    "license": "MIT",
+    "homepage": "http://cache.tale.talesoft.io",
+    "authors": [
+        {
+            "name": "Talesoft",
+            "homepage": "http://talesoft.io",
+            "email": "info@talesoft.io"
+        },
+        {
+            "name": "Torben Koehn",
+            "email": "tk@talesoft.io"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.5.0",
+        "psr/cache": ">=1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tale\\": ""
+        },
+        "files": [
+        ]
+    },
+    "provides": {
+        "psr/cache-implementation": "~1.0"
+    }
+}
