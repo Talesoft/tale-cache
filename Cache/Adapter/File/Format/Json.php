@@ -16,15 +16,54 @@ class Json implements FormatInterface
     public function load($path)
     {
 
-        return json_decode(file_get_contents($path), true);
+        return $this->deserializeObjects(
+            json_decode(file_get_contents($path), true)
+        );
     }
 
     public function save($path, $value)
     {
 
-        file_put_contents($path, json_encode(
-            $value,
+        return file_put_contents($path, json_encode(
+            $this->serializeObjects($value),
             \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_HEX_APOS | \JSON_HEX_QUOT
-        ));
+        ), \LOCK_EX) !== false;
+    }
+
+    protected function serializeObjects($value)
+    {
+
+        if (is_array($value)) {
+
+            foreach ($value as $i => $item)
+                $value[$i] = $this->serializeObjects($item);
+
+            return $value;
+        }
+
+        if (is_object($value)) {
+
+            $serialized = serialize($value);
+            return ['#!'.sha1($serialized) => $serialized];
+        }
+
+        return $value;
+    }
+
+    protected function deserializeObjects($value)
+    {
+
+        if (!is_array($value) || count($value) !== 1)
+            return $value;
+
+        $key = key($value);
+        if (!is_string($key) || strlen($key) !== 42 && strncmp($key, '#!', 2) !== 0)
+            return $value;
+
+        $hash = substr($key, 2);
+        if (sha1($value[$key]) !== $hash)
+            return $value;
+
+        return unserialize($value[$key]);
     }
 }

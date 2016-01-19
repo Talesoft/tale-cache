@@ -24,6 +24,13 @@ final class Cache
                 $this->addGateway($name, $pool);
     }
 
+    public function __clone()
+    {
+
+        foreach ($this->_gateways as $name => $gateway)
+            $this->_gateways[$name] = clone $gateway;
+    }
+
     /**
      * @return array
      */
@@ -61,7 +68,6 @@ final class Cache
     {
 
         $options = [];
-
         if ($path)
             $options['path'] = $path;
 
@@ -93,5 +99,11 @@ final class Cache
     {
 
         return $this->getGateway($key);
+    }
+
+    public function __isset($key)
+    {
+
+        return isset($this->_gateways[$key]);
     }
 }

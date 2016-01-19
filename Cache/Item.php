@@ -12,7 +12,9 @@ class Item implements CacheItemInterface
 {
 
     private $_pool;
+    private $_adapter;
     private $_key;
+    private $_loaded;
     private $_value;
     private $_lifeTime;
 
@@ -22,7 +24,9 @@ class Item implements CacheItemInterface
         $pool->validateKey($key);
 
         $this->_pool = $pool;
+        $this->_adapter = $pool->getAdapter();
         $this->_key = $key;
+        $this->_loaded = false;
         $this->_value = null;
         $this->_lifeTime = null;
     }
@@ -36,11 +40,31 @@ class Item implements CacheItemInterface
     }
 
     /**
+     * @return \Tale\Cache\AdapterInterface
+     */
+    public function getAdapter()
+    {
+        return $this->_adapter;
+    }
+
+    public function getValue()
+    {
+
+        return $this->_value;
+    }
+
+    /**
      * @return int|null
      */
     public function getLifeTime()
     {
         return $this->_lifeTime;
+    }
+
+    public function isLoaded()
+    {
+
+        return $this->_loaded;
     }
 
     /**
@@ -76,8 +100,11 @@ class Item implements CacheItemInterface
         if (!$this->isHit())
             return null;
 
-        if (!$this->_value)
-            $this->_value = $this->_pool->getAdapter()->get($this->_key);
+        if ($this->_loaded)
+            return $this->_value;
+
+        $this->_value = $this->getAdapter()->get($this->_key);
+        $this->_loaded = true;
 
         return $this->_value;
     }
@@ -94,7 +121,7 @@ class Item implements CacheItemInterface
     public function isHit()
     {
 
-        return $this->_pool->getAdapter()->has($this->_key);
+        return $this->getAdapter()->has($this->_key);
     }
 
     /**
@@ -113,7 +140,7 @@ class Item implements CacheItemInterface
     public function set($value)
     {
 
-        $this->_value = $this->_key;
+        $this->_value = $value;
 
         return $this;
     }
@@ -190,5 +217,21 @@ class Item implements CacheItemInterface
             );
 
         return $this->expiresAt((new DateTimeImmutable())->add($time));
+    }
+
+    public function save()
+    {
+
+        $lifeTime = $this->_lifeTime;
+        if ($lifeTime === null)
+            $lifeTime = $this->getPool()->getLifeTime();
+
+        return $this->getAdapter()->set($this->_key, $this->_value, $lifeTime);
+    }
+
+    public function delete()
+    {
+
+        return $this->getAdapter()->remove($this->_key);
     }
 }

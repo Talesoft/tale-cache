@@ -19,6 +19,12 @@ class Gateway implements ArrayAccess
         $this->_pool = $pool;
     }
 
+    public function __clone()
+    {
+
+        $this->_pool = clone $this->_pool;
+    }
+
     /**
      * @return ItemPool
      */
@@ -54,7 +60,7 @@ class Gateway implements ArrayAccess
         if ($lifeTime !== null)
             $item->expiresAfter($lifeTime);
 
-        $this->_pool->saveDeferred($item);
+        $this->_pool->save($item);
 
         return $this;
     }
@@ -71,6 +77,12 @@ class Gateway implements ArrayAccess
         return $this->_pool->commit();
     }
 
+    public function clear()
+    {
+
+        return $this->_pool->clear();
+    }
+
     public function load($key, $callback, $lifeTime = null)
     {
 
@@ -85,7 +97,7 @@ class Gateway implements ArrayAccess
         if ($lifeTime !== null)
             $item->expiresAfter($lifeTime);
 
-        $this->_pool->saveDeferred($item);
+        $this->_pool->save($item);
 
         return $value;
     }
