@@ -65,7 +65,7 @@ abstract class FileCacheTestBase extends \PHPUnit_Framework_TestCase
     public function testRetrievalOfValues($index, $value)
     {
 
-        $this->_cache->poolName->getPool()->getAdapter()->set($index, $value, 2);
+        $this->_cache->poolName->getPool()->getAdapter()->set($index, $value, 60);
         $this->assertTrue($this->_cache->poolName->getPool()->getItem($index)->isHit(), 'before clone');
         $cache = clone $this->_cache;
         $this->assertTrue($cache->poolName->getPool()->getItem($index)->isHit(), 'after clone');
