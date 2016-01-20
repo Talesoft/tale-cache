@@ -63,9 +63,9 @@ abstract class FileCacheTestBase extends \PHPUnit_Framework_TestCase
     {
 
         $this->_cache->poolName->getPool()->getAdapter()->set($index, $value, 2);
-        $this->assertTrue($this->_cache->poolName->getPool()->getItem($index)->isHit());
+        $this->assertTrue($this->_cache->poolName->getPool()->getItem($index)->isHit(), 'before clone');
         $cache = clone $this->_cache;
-        $this->assertTrue($cache->poolName->getPool()->getItem($index)->isHit());
+        $this->assertTrue($cache->poolName->getPool()->getItem($index)->isHit(), 'after clone');
         $this->assertEquals(
             $value,
             $cache->poolName[$index]
