@@ -26,8 +26,11 @@ abstract class FileCacheTestBase extends \PHPUnit_Framework_TestCase
 
         $cache = clone $this->_cache;
         $this->assertNotSame($this->_cache->poolName->getPool(), $cache->poolName->getPool());
+        $this->assertEquals($this->_cache->poolName->getPool(), $cache->poolName->getPool());
         $this->assertNotSame($this->_cache->poolName->getPool()->getAdapter(), $cache->poolName->getPool()->getAdapter());
+        $this->assertEquals($this->_cache->poolName->getPool()->getAdapter(), $cache->poolName->getPool()->getAdapter());
         $this->assertNotSame($this->_cache->poolName->getPool()->getAdapter()->getFormat(), $cache->poolName->getPool()->getAdapter()->getFormat());
+        $this->assertEquals($this->_cache->poolName->getPool()->getAdapter()->getFormat(), $cache->poolName->getPool()->getAdapter()->getFormat());
     }
 
     /**
