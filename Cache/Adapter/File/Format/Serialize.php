@@ -10,7 +10,7 @@ class Serialize implements FormatInterface
     public function getExtension()
     {
 
-        return '.serialized';
+        return '.cache';
     }
 
     public function load($path)
@@ -22,6 +22,6 @@ class Serialize implements FormatInterface
     public function save($path, $value)
     {
 
-        file_put_contents($path, serialize($value));
+        return file_put_contents($path, serialize($value), \LOCK_EX) !== false;
     }
 }

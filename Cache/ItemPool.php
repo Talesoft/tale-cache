@@ -23,6 +23,20 @@ class ItemPool implements CacheItemPoolInterface
         $this->_lifeTime = $lifeTime !== null ? $lifeTime : 31622400; //One year
     }
 
+    public function __destruct()
+    {
+
+        $this->commit();
+    }
+
+    public function __clone()
+    {
+
+        $this->_adapter = clone $this->_adapter;
+        $this->_items = [];
+        $this->_deferredItems = [];
+    }
+
     /**
      * @return \Tale\Cache\AdapterInterface
      */
@@ -39,10 +53,18 @@ class ItemPool implements CacheItemPoolInterface
         return $this->_deferredItems;
     }
 
+    /**
+     * @return int|null
+     */
+    public function getLifeTime()
+    {
+        return $this->_lifeTime;
+    }
+
     public function isValidKey($key)
     {
 
-        return preg_match('/[^.][a-zA-Z0-9.\-_]+[^.]/', $key);
+        return preg_match('/[a-zA-Z0-9.\-_]+/', $key);
     }
 
     public function validateKey($key)
@@ -161,9 +183,15 @@ class ItemPool implements CacheItemPoolInterface
     public function deleteItem($key)
     {
 
-        $this->validateKey($key);
+        /** @var Item $item */
+        $item = $this->getItem($key);
 
-        return $this->_adapter->remove($key);
+        $success = $item->delete();
+
+        if (isset($this->_items[$key]))
+            unset($this->_items[$key]);
+
+        return $success;
     }
 
     /**
@@ -201,7 +229,7 @@ class ItemPool implements CacheItemPoolInterface
     public function clear()
     {
 
-        $this->_adapter->clear();
+        return $this->_adapter->clear();
     }
 
     /**
@@ -220,15 +248,8 @@ class ItemPool implements CacheItemPoolInterface
 
         $this->validateItem($item);
 
-
         /** @var $item Item */
-
-        $lifeTime = $item->getLifeTime();
-
-        if ($lifeTime === null)
-            $lifeTime = $this->_lifeTime;
-
-        return $this->_adapter->set($item->getKey(), $item->get(), $lifeTime);
+        return $item->save();
     }
 
     /**

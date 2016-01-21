@@ -22,13 +22,6 @@ class File implements AdapterInterface
     private $_options;
 
     /**
-     * The directory that will be used as a cache storage
-     *
-     * @var string
-     */
-    private $_path;
-
-    /**
      * @var FormatInterface
      */
     private $_format;
@@ -56,11 +49,11 @@ class File implements AdapterInterface
         $this->_options = array_replace_recursive([
             'path' => './cache',
             'formats' => [
-                'json' => Export::class,
-                'serialize' => Json::class,
-                'export' => Serialize::class
+                'json' => Json::class,
+                'serialize' => Serialize::class
             ],
             'format' => 'json',
+            'ignoredFiles' => ['.gitignore', '.htaccess'],
             'lifeTimeKey' => 'cache-lifetimes'
         ], $options ? $options : []);
 
@@ -77,8 +70,14 @@ class File implements AdapterInterface
         $this->_lifeTimePath = $this->getKeyPath($this->_options['lifeTimeKey']);
         $this->_lifeTimes = [];
 
-        if (file_exists($this->_lifeTimePath))
-            $this->_lifeTimes = $this->_format->load($this->_lifeTimePath);
+        $this->loadLifeTimes();
+    }
+
+    public function __clone()
+    {
+
+        $this->_format = clone $this->_format;
+        $this->loadLifeTimes();
     }
 
 
@@ -90,7 +89,31 @@ class File implements AdapterInterface
     public function getPath()
     {
 
-        return $this->_path;
+        return $this->_options['path'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getOptions()
+    {
+        return $this->_options;
+    }
+
+    /**
+     * @return FormatInterface
+     */
+    public function getFormat()
+    {
+        return $this->_format;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLifeTimePath()
+    {
+        return $this->_lifeTimePath;
     }
 
     /**
@@ -105,7 +128,7 @@ class File implements AdapterInterface
     {
 
         $key = str_replace('.', '/', trim($key, '.'));
-        return implode('', [$this->_path, "/$key", $this->_format->getExtension()]);
+        return implode('', [$this->getPath(), "/$key", $this->_format->getExtension()]);
     }
 
     /**
@@ -155,17 +178,15 @@ class File implements AdapterInterface
         $dir = dirname($path);
 
         if (!is_dir($dir))
-            mkdir($dir, 0777, true);
+            if (!mkdir($dir, 0777, true))
+                return false;
 
         $this->_lifeTimes[$key] = intval($lifeTime);
 
-        //Save the life times
-        $this->_format->save($this->_lifeTimePath, $this->_lifeTimes);
+        $this->saveLifeTimes();
 
         //Save the cache content
-        $this->_format->save($path, $value);
-
-        return true;
+        return $this->_format->save($path, $value);
     }
 
     /**
@@ -179,20 +200,44 @@ class File implements AdapterInterface
         if (isset($this->_lifeTimes[$key])) {
 
             unset($this->_lifeTimes[$key]);
-            $this->_format->save($this->_lifeTimePath, $this->_lifeTimes);
+            $this->saveLifeTimes();
         }
 
-        return unlink($this->getKeyPath($key));
+        $path = $this->getKeyPath($key);
+
+        return !file_exists($path) || unlink($path);
     }
 
     public function clear()
     {
 
+        $ignoredFiles = array_merge(['.', '..'], $this->_options['ignoredFiles']);
+
         $success = true;
         foreach (scandir($this->_options['path']) as $file)
-            if (!unlink($file))
-                $success = false;
+            if (!in_array($file, $ignoredFiles, true))
+                if (!unlink($this->_options['path']."/$file"))
+                    $success = false;
 
         return $success;
+    }
+
+    protected function loadLifeTimes()
+    {
+
+        $this->_lifeTimes = [];
+        if (file_exists($this->_lifeTimePath))
+            $this->_lifeTimes = $this->_format->load($this->_lifeTimePath);
+
+        return $this;
+    }
+
+    protected function saveLifeTimes()
+    {
+
+        if (count($this->_lifeTimes) > 0)
+            $this->_format->save($this->_lifeTimePath, $this->_lifeTimes);
+
+        return $this;
     }
 }
