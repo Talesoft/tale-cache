@@ -50,8 +50,7 @@ class File implements AdapterInterface
             'path' => './cache',
             'formats' => [
                 'json' => Json::class,
-                'serialize' => Serialize::class,
-                'export' => Export::class
+                'serialize' => Serialize::class
             ],
             'format' => 'json',
             'ignoredFiles' => ['.gitignore', '.htaccess'],
