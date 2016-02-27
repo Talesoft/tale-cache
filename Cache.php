@@ -89,12 +89,6 @@ final class Cache
         return $this->addFileGateway($name, $path, $lifeTime, 'serialize');
     }
 
-    public function addExportGateway($name, $path = null, $lifeTime = null)
-    {
-
-        return $this->addFileGateway($name, $path, $lifeTime, 'export');
-    }
-
     public function __get($key)
     {
 
