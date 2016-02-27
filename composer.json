@@ -4,7 +4,7 @@
     "keywords": ["cache", "caching", "psr-6"],
     "description": "A small and basic PSR-6 compatible caching library",
     "license": "MIT",
-    "homepage": "http://cache.tale.talesoft.io",
+    "homepage": "http://docs.talesoft.io/tale-framework/tale-cache",
     "authors": [
         {
             "name": "Talesoft",
@@ -21,15 +21,10 @@
         "php": ">=5.5.0",
         "psr/cache": ">=1.0"
     },
-    "require-dev": {
-        "phpunit/phpunit": "~4.0"
-    },
     "autoload": {
         "psr-4": {
             "Tale\\": ""
-        },
-        "files": [
-        ]
+        }
     },
     "provides": {
         "psr/cache-implementation": "~1.0"
