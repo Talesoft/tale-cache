@@ -53,8 +53,16 @@ class Json implements FormatInterface
     protected function deserializeObjects($value)
     {
 
-        if (!is_array($value) || count($value) !== 1)
+        if (!is_array($value))
             return $value;
+
+        if (count($value) !== 1) {
+
+            foreach ($value as $key => $val)
+                $value[$key] = $this->deserializeObjects($val);
+
+            return $value;
+        }
 
         $key = key($value);
         if (!is_string($key) || strlen($key) !== 42 && strncmp($key, '#!', 2) !== 0)

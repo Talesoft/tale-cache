@@ -19,7 +19,8 @@
     "minimum-stability": "dev",
     "require": {
         "php": ">=5.5.0",
-        "psr/cache": ">=1.0"
+        "psr/cache": ">=1.0",
+        "talesoft/tale-config": "~0.1"
     },
     "autoload": {
         "psr-4": {

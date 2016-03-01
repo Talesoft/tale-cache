@@ -2,11 +2,11 @@
 
 namespace Tale\Cache\Adapter;
 
-use Tale\Cache\Adapter\File\Format\Export;
 use Tale\Cache\Adapter\File\Format\Json;
 use Tale\Cache\Adapter\File\Format\Serialize;
 use Tale\Cache\Adapter\File\FormatInterface;
 use Tale\Cache\AdapterInterface;
+use Tale\ConfigurableTrait;
 
 /**
  * Basic file system storage cache adapter
@@ -18,8 +18,7 @@ use Tale\Cache\AdapterInterface;
  */
 class File implements AdapterInterface
 {
-
-    private $_options;
+    use ConfigurableTrait;
 
     /**
      * @var FormatInterface
@@ -46,8 +45,8 @@ class File implements AdapterInterface
     public function __construct(array $options = null)
     {
 
-        $this->_options = array_replace_recursive([
-            'path' => './cache',
+        $this->defineOptions([
+            'path' => getcwd().'/cache',
             'formats' => [
                 'json' => Json::class,
                 'serialize' => Serialize::class
@@ -55,10 +54,10 @@ class File implements AdapterInterface
             'format' => 'json',
             'ignoredFiles' => ['.gitignore', '.htaccess'],
             'lifeTimeKey' => 'cache-lifetimes'
-        ], $options ? $options : []);
+        ], $options);
 
-        $formats = $this->_options['formats'];
-        $format = $this->_options['format'];
+        $formats = $this->getOption('formats');
+        $format = $this->getOption('format');
 
         if (!isset($formats[$format]) || !is_subclass_of($formats[$format], FormatInterface::class))
             throw new \InvalidArgumentException(
@@ -67,7 +66,7 @@ class File implements AdapterInterface
 
         $formatClassName = $formats[$format];
         $this->_format = new $formatClassName();
-        $this->_lifeTimePath = $this->getKeyPath($this->_options['lifeTimeKey']);
+        $this->_lifeTimePath = $this->getKeyPath($this->getOption('lifeTimeKey'));
         $this->_lifeTimes = [];
 
         $this->loadLifeTimes();
@@ -80,7 +79,6 @@ class File implements AdapterInterface
         $this->loadLifeTimes();
     }
 
-
     /**
      * Returns the current cache storage directory path
      *
@@ -89,15 +87,7 @@ class File implements AdapterInterface
     public function getPath()
     {
 
-        return $this->_options['path'];
-    }
-
-    /**
-     * @return array
-     */
-    public function getOptions()
-    {
-        return $this->_options;
+        return $this->getOption('path');
     }
 
     /**
