@@ -30,7 +30,7 @@ class Json implements FormatInterface
         ), \LOCK_EX) !== false;
     }
 
-    protected function serializeObjects($value)
+    private function serializeObjects($value)
     {
 
         if (is_array($value)) {
@@ -50,7 +50,7 @@ class Json implements FormatInterface
         return $value;
     }
 
-    protected function deserializeObjects($value)
+    private function deserializeObjects($value)
     {
 
         if (!is_array($value))

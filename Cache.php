@@ -12,12 +12,12 @@ use Tale\Cache\ItemPool;
 final class Cache
 {
 
-    private $_gateways;
+    private $gateways;
 
     public function __construct(array $pools = null)
     {
 
-        $this->_gateways = [];
+        $this->gateways = [];
 
         if ($pools)
             foreach ($pools as $name => $pool)
@@ -27,8 +27,8 @@ final class Cache
     public function __clone()
     {
 
-        foreach ($this->_gateways as $name => $gateway)
-            $this->_gateways[$name] = clone $gateway;
+        foreach ($this->gateways as $name => $gateway)
+            $this->gateways[$name] = clone $gateway;
     }
 
     /**
@@ -36,24 +36,24 @@ final class Cache
      */
     public function getGateways()
     {
-        return $this->_gateways;
+        return $this->gateways;
     }
 
     public function getGateway($name)
     {
 
-        return $this->_gateways[$name];
+        return $this->gateways[$name];
     }
 
     public function addGateway($name, CacheItemPoolInterface $pool)
     {
 
-        if (isset($this->_gateways[$name]))
+        if (isset($this->gateways[$name]))
             throw new InvalidArgumentException(
                 "An item pool with the name $name is already registered"
             );
 
-        $this->_gateways[$name] = new Gateway($pool);
+        $this->gateways[$name] = new Gateway($pool);
 
         return $this;
     }
@@ -98,6 +98,6 @@ final class Cache
     public function __isset($key)
     {
 
-        return isset($this->_gateways[$key]);
+        return isset($this->gateways[$key]);
     }
 }

@@ -23,24 +23,26 @@ class File implements AdapterInterface
     /**
      * @var FormatInterface
      */
-    private $_format;
+    private $format;
 
     /**
      * The path to the file that contains the life-times for each key in this cache
      *
      * @var string
      */
-    private $_lifeTimePath;
+    private $lifeTimePath;
 
     /**
      * The life-times of specific items indexed by the cache-key used
      *
      * @var array
      */
-    private $_lifeTimes;
+    private $lifeTimes;
 
     /**
      * Initializes the file cache adapter
+     *
+     * @param array $options
      */
     public function __construct(array $options = null)
     {
@@ -56,8 +58,8 @@ class File implements AdapterInterface
             'lifeTimeKey' => 'cache-lifetimes'
         ], $options);
 
-        $formats = $this->getOption('formats');
-        $format = $this->getOption('format');
+        $formats = $this->options['formats'];
+        $format = $this->options['format'];
 
         if (!isset($formats[$format]) || !is_subclass_of($formats[$format], FormatInterface::class))
             throw new \InvalidArgumentException(
@@ -65,9 +67,9 @@ class File implements AdapterInterface
             );
 
         $formatClassName = $formats[$format];
-        $this->_format = new $formatClassName();
-        $this->_lifeTimePath = $this->getKeyPath($this->getOption('lifeTimeKey'));
-        $this->_lifeTimes = [];
+        $this->format = new $formatClassName();
+        $this->lifeTimePath = $this->getKeyPath($this->options['lifeTimeKey']);
+        $this->lifeTimes = [];
 
         $this->loadLifeTimes();
     }
@@ -75,7 +77,7 @@ class File implements AdapterInterface
     public function __clone()
     {
 
-        $this->_format = clone $this->_format;
+        $this->format = clone $this->format;
         $this->loadLifeTimes();
     }
 
@@ -87,7 +89,7 @@ class File implements AdapterInterface
     public function getPath()
     {
 
-        return $this->getOption('path');
+        return $this->options['path'];
     }
 
     /**
@@ -95,7 +97,7 @@ class File implements AdapterInterface
      */
     public function getFormat()
     {
-        return $this->_format;
+        return $this->format;
     }
 
     /**
@@ -103,7 +105,7 @@ class File implements AdapterInterface
      */
     public function getLifeTimePath()
     {
-        return $this->_lifeTimePath;
+        return $this->lifeTimePath;
     }
 
     /**
@@ -118,7 +120,7 @@ class File implements AdapterInterface
     {
 
         $key = str_replace('.', '/', trim($key, '.'));
-        return implode('', [$this->getPath(), "/$key", $this->_format->getExtension()]);
+        return implode('', [$this->getPath(), "/$key", $this->format->getExtension()]);
     }
 
     /**
@@ -133,10 +135,10 @@ class File implements AdapterInterface
 
         $path = $this->getKeyPath($key);
 
-        if (!file_exists($path) || empty($this->_lifeTimes[$key]))
+        if (!file_exists($path) || empty($this->lifeTimes[$key]))
             return false;
 
-        return !(time() - filemtime($path) > $this->_lifeTimes[$key]);
+        return !(time() - filemtime($path) > $this->lifeTimes[$key]);
     }
 
     /**
@@ -149,7 +151,7 @@ class File implements AdapterInterface
     public function get($key)
     {
 
-        return $this->_format->load($this->getKeyPath($key));
+        return $this->format->load($this->getKeyPath($key));
     }
 
     /**
@@ -171,12 +173,12 @@ class File implements AdapterInterface
             if (!mkdir($dir, 0777, true))
                 return false;
 
-        $this->_lifeTimes[$key] = intval($lifeTime);
+        $this->lifeTimes[$key] = intval($lifeTime);
 
         $this->saveLifeTimes();
 
         //Save the cache content
-        return $this->_format->save($path, $value);
+        return $this->format->save($path, $value);
     }
 
     /**
@@ -187,9 +189,9 @@ class File implements AdapterInterface
     public function remove($key)
     {
 
-        if (isset($this->_lifeTimes[$key])) {
+        if (isset($this->lifeTimes[$key])) {
 
-            unset($this->_lifeTimes[$key]);
+            unset($this->lifeTimes[$key]);
             $this->saveLifeTimes();
         }
 
@@ -201,12 +203,12 @@ class File implements AdapterInterface
     public function clear()
     {
 
-        $ignoredFiles = array_merge(['.', '..'], $this->_options['ignoredFiles']);
+        $ignoredFiles = array_merge(['.', '..'], $this->options['ignoredFiles']);
 
         $success = true;
-        foreach (scandir($this->_options['path']) as $file)
+        foreach (scandir($this->options['path']) as $file)
             if (!in_array($file, $ignoredFiles, true))
-                if (!unlink($this->_options['path']."/$file"))
+                if (!unlink($this->options['path']."/$file"))
                     $success = false;
 
         return $success;
@@ -215,9 +217,9 @@ class File implements AdapterInterface
     protected function loadLifeTimes()
     {
 
-        $this->_lifeTimes = [];
-        if (file_exists($this->_lifeTimePath))
-            $this->_lifeTimes = $this->_format->load($this->_lifeTimePath);
+        $this->lifeTimes = [];
+        if (file_exists($this->lifeTimePath))
+            $this->lifeTimes = $this->format->load($this->lifeTimePath);
 
         return $this;
     }
@@ -225,8 +227,8 @@ class File implements AdapterInterface
     protected function saveLifeTimes()
     {
 
-        if (count($this->_lifeTimes) > 0)
-            $this->_format->save($this->_lifeTimePath, $this->_lifeTimes);
+        if (count($this->lifeTimes) > 0)
+            $this->format->save($this->lifeTimePath, $this->lifeTimes);
 
         return $this;
     }

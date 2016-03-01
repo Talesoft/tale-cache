@@ -9,18 +9,18 @@ use Tale\Cache;
 class ItemPool implements CacheItemPoolInterface
 {
 
-    private $_adapter;
-    private $_items;
-    private $_deferredItems;
-    private $_lifeTime;
+    private $adapter;
+    private $items;
+    private $deferredItems;
+    private $lifeTime;
 
     public function __construct(AdapterInterface $adapter, $lifeTime = null)
     {
 
-        $this->_adapter = $adapter;
-        $this->_items = [];
-        $this->_deferredItems = [];
-        $this->_lifeTime = $lifeTime !== null ? $lifeTime : 31622400; //One year
+        $this->adapter = $adapter;
+        $this->items = [];
+        $this->deferredItems = [];
+        $this->lifeTime = $lifeTime !== null ? $lifeTime : 31622400; //One year
     }
 
     public function __destruct()
@@ -32,9 +32,9 @@ class ItemPool implements CacheItemPoolInterface
     public function __clone()
     {
 
-        $this->_adapter = clone $this->_adapter;
-        $this->_items = [];
-        $this->_deferredItems = [];
+        $this->adapter = clone $this->adapter;
+        $this->items = [];
+        $this->deferredItems = [];
     }
 
     /**
@@ -42,7 +42,7 @@ class ItemPool implements CacheItemPoolInterface
      */
     public function getAdapter()
     {
-        return $this->_adapter;
+        return $this->adapter;
     }
 
     /**
@@ -50,7 +50,7 @@ class ItemPool implements CacheItemPoolInterface
      */
     public function getDeferredItems()
     {
-        return $this->_deferredItems;
+        return $this->deferredItems;
     }
 
     /**
@@ -58,7 +58,7 @@ class ItemPool implements CacheItemPoolInterface
      */
     public function getLifeTime()
     {
-        return $this->_lifeTime;
+        return $this->lifeTime;
     }
 
     public function isValidKey($key)
@@ -112,10 +112,10 @@ class ItemPool implements CacheItemPoolInterface
     public function getItem($key)
     {
 
-        if (!isset($this->_items[$key]))
-            $this->_items[$key] = new Item($this, $key);
+        if (!isset($this->items[$key]))
+            $this->items[$key] = new Item($this, $key);
 
-        return $this->_items[$key];
+        return $this->items[$key];
     }
 
     /**
@@ -188,8 +188,8 @@ class ItemPool implements CacheItemPoolInterface
 
         $success = $item->delete();
 
-        if (isset($this->_items[$key]))
-            unset($this->_items[$key]);
+        if (isset($this->items[$key]))
+            unset($this->items[$key]);
 
         return $success;
     }
@@ -229,7 +229,7 @@ class ItemPool implements CacheItemPoolInterface
     public function clear()
     {
 
-        return $this->_adapter->clear();
+        return $this->adapter->clear();
     }
 
     /**
@@ -267,10 +267,10 @@ class ItemPool implements CacheItemPoolInterface
 
         //check if this item is already deferred
 
-        if (in_array($item, $this->_deferredItems, true))
+        if (in_array($item, $this->deferredItems, true))
             return false;
 
-        $this->_deferredItems[] = $item;
+        $this->deferredItems[] = $item;
 
         return true;
     }
@@ -284,15 +284,15 @@ class ItemPool implements CacheItemPoolInterface
     public function commit()
     {
 
-        if (count($this->_deferredItems) < 1)
+        if (count($this->deferredItems) < 1)
             return true;
 
         $success = true;
-        foreach ($this->_deferredItems as $item)
+        foreach ($this->deferredItems as $item)
             if (!$this->save($item))
                 $success = false;
 
-        $this->_deferredItems = [];
+        $this->deferredItems = [];
 
         return $success;
     }

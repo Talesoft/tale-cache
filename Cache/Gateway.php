@@ -11,18 +11,18 @@ class Gateway implements ArrayAccess
     /**
      * @var ItemPool
      */
-    private $_pool;
+    private $pool;
 
     public function __construct(CacheItemPoolInterface $pool)
     {
 
-        $this->_pool = $pool;
+        $this->pool = $pool;
     }
 
     public function __clone()
     {
 
-        $this->_pool = clone $this->_pool;
+        $this->pool = clone $this->pool;
     }
 
     /**
@@ -30,19 +30,19 @@ class Gateway implements ArrayAccess
      */
     public function getPool()
     {
-        return $this->_pool;
+        return $this->pool;
     }
 
     public function getItem($key)
     {
 
-        return $this->_pool->getItem($key);
+        return $this->pool->getItem($key);
     }
 
     public function has($key)
     {
 
-        return $this->_pool->hasItem($key);
+        return $this->pool->hasItem($key);
     }
 
     public function get($key)
@@ -60,7 +60,7 @@ class Gateway implements ArrayAccess
         if ($lifeTime !== null)
             $item->expiresAfter($lifeTime);
 
-        $this->_pool->save($item);
+        $this->pool->save($item);
 
         return $this;
     }
@@ -68,19 +68,19 @@ class Gateway implements ArrayAccess
     public function delete($key)
     {
 
-        return $this->_pool->deleteItem($key);
+        return $this->pool->deleteItem($key);
     }
 
     public function commit()
     {
 
-        return $this->_pool->commit();
+        return $this->pool->commit();
     }
 
     public function clear()
     {
 
-        return $this->_pool->clear();
+        return $this->pool->clear();
     }
 
     public function load($key, $callback, $lifeTime = null)
@@ -97,7 +97,7 @@ class Gateway implements ArrayAccess
         if ($lifeTime !== null)
             $item->expiresAfter($lifeTime);
 
-        $this->_pool->save($item);
+        $this->pool->save($item);
 
         return $value;
     }
@@ -123,7 +123,7 @@ class Gateway implements ArrayAccess
     public function __unset($key)
     {
 
-        $this->_pool->deleteItem($key);
+        $this->pool->deleteItem($key);
     }
 
     public function offsetExists($offset)

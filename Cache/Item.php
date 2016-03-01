@@ -11,24 +11,24 @@ use Tale\Cache;
 class Item implements CacheItemInterface
 {
 
-    private $_pool;
-    private $_adapter;
-    private $_key;
-    private $_loaded;
-    private $_value;
-    private $_lifeTime;
+    private $pool;
+    private $adapter;
+    private $key;
+    private $loaded;
+    private $value;
+    private $lifeTime;
 
     public function __construct(ItemPool $pool, $key)
     {
 
         $pool->validateKey($key);
 
-        $this->_pool = $pool;
-        $this->_adapter = $pool->getAdapter();
-        $this->_key = $key;
-        $this->_loaded = false;
-        $this->_value = null;
-        $this->_lifeTime = null;
+        $this->pool = $pool;
+        $this->adapter = $pool->getAdapter();
+        $this->key = $key;
+        $this->loaded = false;
+        $this->value = null;
+        $this->lifeTime = null;
     }
 
     /**
@@ -36,7 +36,8 @@ class Item implements CacheItemInterface
      */
     public function getPool()
     {
-        return $this->_pool;
+
+        return $this->pool;
     }
 
     /**
@@ -44,13 +45,14 @@ class Item implements CacheItemInterface
      */
     public function getAdapter()
     {
-        return $this->_adapter;
+
+        return $this->adapter;
     }
 
     public function getValue()
     {
 
-        return $this->_value;
+        return $this->value;
     }
 
     /**
@@ -58,13 +60,14 @@ class Item implements CacheItemInterface
      */
     public function getLifeTime()
     {
-        return $this->_lifeTime;
+
+        return $this->lifeTime;
     }
 
     public function isLoaded()
     {
 
-        return $this->_loaded;
+        return $this->loaded;
     }
 
     /**
@@ -79,7 +82,7 @@ class Item implements CacheItemInterface
     public function getKey()
     {
 
-        return $this->_key;
+        return $this->key;
     }
 
     /**
@@ -100,13 +103,13 @@ class Item implements CacheItemInterface
         if (!$this->isHit())
             return null;
 
-        if ($this->_loaded)
-            return $this->_value;
+        if ($this->loaded)
+            return $this->value;
 
-        $this->_value = $this->getAdapter()->get($this->_key);
-        $this->_loaded = true;
+        $this->value = $this->adapter->get($this->key);
+        $this->loaded = true;
 
-        return $this->_value;
+        return $this->value;
     }
 
     /**
@@ -121,7 +124,7 @@ class Item implements CacheItemInterface
     public function isHit()
     {
 
-        return $this->getAdapter()->has($this->_key);
+        return $this->adapter->has($this->key);
     }
 
     /**
@@ -140,7 +143,7 @@ class Item implements CacheItemInterface
     public function set($value)
     {
 
-        $this->_value = $value;
+        $this->value = $value;
 
         return $this;
     }
@@ -165,7 +168,7 @@ class Item implements CacheItemInterface
 
         if ($expiration === null) {
 
-            $this->_lifeTime = null;
+            $this->lifeTime = null;
             return $this;
         }
 
@@ -175,7 +178,7 @@ class Item implements CacheItemInterface
                 "instance of DateTimeInterface"
             );
 
-        $this->_lifeTime = max(0, time() - $expiration->getTimestamp());
+        $this->lifeTime = max(0, time() - $expiration->getTimestamp());
 
         return $this;
     }
@@ -200,13 +203,13 @@ class Item implements CacheItemInterface
 
         if ($time === null) {
 
-            $this->_lifeTime = null;
+            $this->lifeTime = null;
             return $this;
         }
 
         if (is_int($time)) {
 
-            $this->_lifeTime = $time;
+            $this->lifeTime = $time;
             return $this;
         }
 
@@ -222,16 +225,16 @@ class Item implements CacheItemInterface
     public function save()
     {
 
-        $lifeTime = $this->_lifeTime;
+        $lifeTime = $this->lifeTime;
         if ($lifeTime === null)
-            $lifeTime = $this->getPool()->getLifeTime();
+            $lifeTime = $this->pool->getLifeTime();
 
-        return $this->getAdapter()->set($this->_key, $this->_value, $lifeTime);
+        return $this->adapter->set($this->key, $this->value, $lifeTime);
     }
 
     public function delete()
     {
 
-        return $this->getAdapter()->remove($this->_key);
+        return $this->adapter->remove($this->key);
     }
 }
