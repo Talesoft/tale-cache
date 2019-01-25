@@ -1,82 +1,43 @@
 
-# Tale Cache
-**A Tale Framework Component**
+Tale Cache
+==========
 
-# What is Tale Cache?
+What is Tale Cache?
+-------------------
 
-Tale Cache is a small caching utility library that is compatible to PSR-6 caches
+Tale Cache is a complete PSR-6 and PSR-16 implementation
+that provides different cache pools and simple cache interfaces.
 
-# Installation
+Installation
+------------
 
-Install via Composer
+**Don't use in production yet**
 
 ```bash
-composer require "talesoft/tale-cache:*"
-composer install
+composer req talesoft/tale-cache
 ```
 
-# Usage
+Usage
+-----
 
-**Short form**
 ```php
+use function Tale\cache;
+use function Tale\cache_pool_routing;
+use function Tale\cache_pool_serialized_file;
+use function Tale\cache_pool_redis; //Doesn't actually exist yet
 
-$cache = new Tale\Cache();
-$cache->addJsonGateway('views', __DIR__.'/cache/views');
-$cache->addSerializeGateway('db', __DIR__.'/cache/db');
-
-$html = $cache->views->load('my-view', function() {
-    
-    //Expensive view generation stuff
-    return $html;
-});
-
-
-$users = $cache->db->load('users', function() {
-
-    //Load users from database
-    return $users;
-});
-
-
-
-//Working with the gateway
-if (!isset($cache->db->users)) {
-    
-    $cache->db->users = [new User(), new User(), new User()];
-}
-
-var_dump($cache->db->users);
-
-
-$cache->db->commit();
-```
-
-**Long form**
-```php
-
-//Create adapter
-$adapter = new Tale\Cache\Adapter\File([
-    'path' => __DIR__.'/cache/views',
-    'format' => 'serialize'
+$cache = cache(cache_pool_routing([
+    'app.' => cache_pool_serialized_file(__DIR__.'/var/cache/app'),
+    'db.' => cache_pool_redis('redis://localhost')
 ]);
 
-//Create item pool
-$pool = new Tale\Cache\ItemPool($adapter);
-
-//Create cache and add gateway for pool
-$cache = new Tale\Cache();
-$cache->addGateway('testPool', $pool);
-
-//Work with the pool directly
-$item = $pool->getItem('some-item');
-
-if (!$item->isHit()) {
-    
-    $item->set('some value');
-    $item->expireAt(new DateTimeImmutable('+2 years'));
-    $pool->save($item);
+$value = $cache->get('app.my_namespace.my_value');
+if ($value === null) {
+    $value = do_some_heavy_work()
+    $cache->set('app.my_namespace.my_value', $value);
 }
 
-var_dump($item->get());
-
+//$value is now cached to var/cache/app/my_namespace/my_value.cache
 ```
+
+//TODO: more docs, more tests
